@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>FLIPCOUNT</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-egyptian-hieroglyphs@5.3.0/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-ethiopic@5.3.0/index.css">
 <style>
   :root{
     --panel-hi: #eef0f2;
@@ -659,13 +661,65 @@
     .fd-wrap{ --fd: 12px; }
     .bit-cell{ width: 24px; height: 28px; font-size: 14px; }
   }
+  /* languages */
+  .lang-picker{ display: flex; justify-content: center; margin-bottom: 16px; }
+  .lang-picker select{
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 11px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--chrome-lo);
+    background: linear-gradient(180deg, var(--chrome-hi), var(--panel-hi));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, 0 3px 8px rgba(0,0,0,0.12);
+    max-width: 100%;
+  }
+  .lang-glass{
+    background: linear-gradient(180deg, var(--glass), var(--glass-edge));
+    border-radius: 12px;
+    min-height: 150px;
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.6), 0 4px 12px rgba(0,0,0,0.4) inset;
+    overflow-x: auto;
+  }
+  .lang-glyph{
+    font-size: 46px;
+    line-height: 1.25;
+    font-weight: 700;
+    text-align: center;
+    color: var(--amber-bright);
+    text-shadow: 0 0 6px var(--amber), 0 0 18px rgba(255,157,60,0.55);
+    word-break: break-word;
+  }
+  .lang-glyph.words{ font-size: 24px; font-weight: 600; }
+  .lang-glyph.hiero{ font-family: "Noto Sans Egyptian Hieroglyphs", serif; font-weight: 400; font-size: 42px; letter-spacing: 2px; }
+  .lang-glyph.geez{ font-family: "Noto Sans Ethiopic", serif; }
+  .lang-glyph.empty{ font-size: 15px; font-weight: 400; color: #c9b08a; text-shadow: none; }
+  .lang-glyph svg{ display: block; max-width: 100%; height: auto; }
+  .lang-glyph.pop{ animation: myPop 0.3s ease; }
+  .lang-reading{ margin-top: 14px; text-align: center; font-size: 14px; color: var(--ink); min-height: 20px; line-height: 1.6; }
+  .lang-goto{ margin-top: 16px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.15em; color: #6b7178; }
+  .lang-goto input{
+    width: 92px;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 16px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--chrome-lo);
+    background: #fff;
+    color: var(--ink);
+    text-align: center;
+  }
 </style>
 </head>
 <body>
   <div class="stage">
     <div class="eyebrow">BINARY TOOLKIT</div>
     <h1>FLIPCOUNT</h1>
-    <p class="subhead">Seven ways to count: glass tubes, two binary games, flip dots, a gray code wheel, an abacus, and Mayan numerals.</p>
+    <p class="subhead">Ways to count: glass tubes, two binary games, flip dots, a gray code wheel, an abacus, Mayan numerals, and dozens of languages and ancient scripts.</p>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="counter">COUNTER</button>
@@ -675,6 +729,7 @@
       <button class="tab-btn" data-tab="gray">GRAY WHEEL</button>
       <button class="tab-btn" data-tab="abacus">ABACUS</button>
       <button class="tab-btn" data-tab="mayan">MAYAN</button>
+      <button class="tab-btn" data-tab="languages">LANGUAGES</button>
     </div>
 
     <!-- ===================== COUNTER PANEL ===================== -->
@@ -945,6 +1000,35 @@
       </div>
       <p class="note">The Maya counted in base twenty. A dot is 1, a bar is 5, and the shell means zero. Places stack bottom to top: ones, then twenties, then four hundreds. Hit 20 and a new level appears on top, same carry idea as binary.</p>
     </div>
+
+    <!-- ===================== LANGUAGES PANEL ===================== -->
+    <div class="panel" id="panel-languages">
+      <div class="lang-picker">
+        <select id="langSelect" aria-label="Counting language"></select>
+      </div>
+      <div class="console">
+        <div class="rivet tl"></div>
+        <div class="rivet tr"></div>
+        <div class="rivet bl"></div>
+        <div class="rivet br"></div>
+        <div class="lang-glass">
+          <div class="lang-glyph" id="langGlyph"></div>
+        </div>
+        <div class="lang-reading" id="langReading"></div>
+      </div>
+      <p class="readline" id="langRead"></p>
+      <div class="controls">
+        <button class="ctl-btn ctl-amber" id="langDec">-1</button>
+        <button class="ctl-btn" id="langReset">RESET</button>
+        <button class="ctl-btn ctl-amber" id="langInc">+1</button>
+        <button class="ctl-btn" id="langAuto">AUTO</button>
+      </div>
+      <div class="lang-goto">
+        <span>JUMP TO</span>
+        <input id="langGoto" type="number" min="0" max="9999" inputmode="numeric" placeholder="0">
+      </div>
+      <p class="note" id="langAbout"></p>
+    </div>
   </div>
 
 <script>
@@ -957,7 +1041,8 @@
     flipdot: document.getElementById('panel-flipdot'),
     gray: document.getElementById('panel-gray'),
     abacus: document.getElementById('panel-abacus'),
-    mayan: document.getElementById('panel-mayan')
+    mayan: document.getElementById('panel-mayan'),
+    languages: document.getElementById('panel-languages')
   };
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1815,6 +1900,413 @@
     }
 
     makeStepper('my', 'mayan', MAX, render);
+  })();
+</script>
+
+<script>
+  // ===================== LANGUAGES =====================
+  (function(){
+    const MAX = 9999;
+    const sel = document.getElementById('langSelect');
+    const glyphEl = document.getElementById('langGlyph');
+    const readingEl = document.getElementById('langReading');
+    const readEl = document.getElementById('langRead');
+    const aboutEl = document.getElementById('langAbout');
+    const gotoEl = document.getElementById('langGoto');
+    const autoBtn = document.getElementById('langAuto');
+
+    const digitsOf = n => String(n).padStart(4, '0').split('').map(Number); // thousands, hundreds, tens, ones
+
+    // ---------- spoken words ----------
+    function english(n){
+      const o = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+      const t = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+      const u100 = x => x < 20 ? o[x] : t[Math.floor(x/10)] + (x%10 ? '-' + o[x%10] : '');
+      const u1000 = x => {
+        const h = Math.floor(x/100), r = x%100;
+        return (h ? o[h] + ' hundred' : '') + (h && r ? ' ' : '') + (r || !h ? u100(r) : '');
+      };
+      if(n === 0) return 'zero';
+      const th = Math.floor(n/1000), rest = n%1000;
+      return (th ? o[th] + ' thousand' : '') + (th && rest ? ' ' : '') + (rest ? u1000(rest) : '');
+    }
+
+    function spanish(n){
+      const o = ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'];
+      const t = ['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+      const h = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+      const u100 = x => x < 30 ? o[x] : t[Math.floor(x/10)] + (x%10 ? ' y ' + o[x%10] : '');
+      const u1000 = x => {
+        const hh = Math.floor(x/100), r = x%100;
+        if(!hh) return u100(r);
+        const head = (hh === 1 && r === 0) ? 'cien' : h[hh];
+        return head + (r ? ' ' + u100(r) : '');
+      };
+      if(n === 0) return 'cero';
+      const th = Math.floor(n/1000), rest = n%1000;
+      const head = th ? (th === 1 ? 'mil' : o[th] + ' mil') : '';
+      return head + (th && rest ? ' ' : '') + (rest ? u1000(rest) : '');
+    }
+
+    function french(n){
+      const u = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
+      const tn = ['','','vingt','trente','quarante','cinquante','soixante'];
+      function u100(x){
+        if(x < 17) return u[x];
+        if(x < 20) return 'dix-' + u[x-10];
+        const t = Math.floor(x/10), o = x%10;
+        if(t < 7) return tn[t] + (o === 0 ? '' : o === 1 ? ' et un' : '-' + u[o]);
+        if(t === 7) return 'soixante' + (x === 71 ? ' et onze' : '-' + u100(x-60));
+        if(t === 8) return o === 0 ? 'quatre-vingts' : 'quatre-vingt-' + u[o];
+        return 'quatre-vingt-' + u100(x-80);
+      }
+      function u1000(x){
+        const h = Math.floor(x/100), r = x%100;
+        if(!h) return u100(r);
+        const head = h === 1 ? 'cent' : u[h] + ' cent' + (r === 0 ? 's' : '');
+        return head + (r ? ' ' + u100(r) : '');
+      }
+      if(n === 0) return 'zéro';
+      const th = Math.floor(n/1000), rest = n%1000;
+      const head = th ? (th === 1 ? 'mille' : u[th] + ' mille') : '';
+      return head + (th && rest ? ' ' : '') + (rest ? u1000(rest) : '');
+    }
+
+    function german(n){
+      const o = ['null','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn'];
+      const t = ['','','zwanzig','dreißig','vierzig','fünfzig','sechzig','siebzig','achtzig','neunzig'];
+      const pre = d => d === 1 ? 'ein' : o[d];
+      const u100 = x => x < 20 ? o[x] : (x%10 ? pre(x%10) + 'und' : '') + t[Math.floor(x/10)];
+      const u1000 = x => {
+        const h = Math.floor(x/100), r = x%100;
+        return (h ? pre(h) + 'hundert' : '') + (r ? u100(r) : '');
+      };
+      if(n === 0) return 'null';
+      const th = Math.floor(n/1000), rest = n%1000;
+      return (th ? pre(th) + 'tausend' : '') + (rest ? u1000(rest) : '');
+    }
+
+    function koreanSino(n){
+      const d = ['영','일','이','삼','사','오','육','칠','팔','구'];
+      const r = ['yeong','il','i','sam','sa','o','yuk','chil','pal','gu'];
+      const uH = ['천','백','십',''], uR = ['cheon','baek','sip',''];
+      if(n === 0) return { text: '영', read: 'yeong' };
+      let text = '', read = [];
+      digitsOf(n).forEach((dg, i) => {
+        if(!dg) return;
+        const skipOne = dg === 1 && i < 3;
+        text += (skipOne ? '' : d[dg]) + uH[i];
+        read.push((skipOne ? '' : r[dg]) + uR[i]);
+      });
+      return { text: text, read: read.join('-') };
+    }
+
+    function koreanNative(n){
+      const oH = ['','하나','둘','셋','넷','다섯','여섯','일곱','여덟','아홉'];
+      const oR = ['','hana','dul','set','net','daseot','yeoseot','ilgop','yeodeol','ahop'];
+      const tH = ['','열','스물','서른','마흔','쉰','예순','일흔','여든','아흔'];
+      const tR = ['','yeol','seumul','seoreun','maheun','swin','yesun','ilheun','yeodeun','aheun'];
+      if(n < 1 || n > 99) return null;
+      const t = Math.floor(n/10), o = n%10;
+      return { text: tH[t] + oH[o], read: [tR[t], oR[o]].filter(Boolean).join(' ') };
+    }
+
+    function japanese(n){
+      const k = ['零','一','二','三','四','五','六','七','八','九'];
+      const r = ['rei','ichi','ni','san','yon','go','roku','nana','hachi','kyuu'];
+      if(n === 0) return { text: '零', read: 'rei' };
+      const [th, h, t, o] = digitsOf(n);
+      let text = '', read = [];
+      if(th){
+        text += (th === 1 ? '' : k[th]) + '千';
+        read.push(th === 1 ? 'sen' : th === 3 ? 'sanzen' : th === 8 ? 'hassen' : r[th] + 'sen');
+      }
+      if(h){
+        text += (h === 1 ? '' : k[h]) + '百';
+        read.push(h === 1 ? 'hyaku' : h === 3 ? 'sanbyaku' : h === 6 ? 'roppyaku' : h === 8 ? 'happyaku' : r[h] + 'hyaku');
+      }
+      if(t){
+        text += (t === 1 ? '' : k[t]) + '十';
+        read.push(t === 1 ? 'juu' : r[t] + 'juu');
+      }
+      if(o){ text += k[o]; read.push(r[o]); }
+      return { text: text, read: read.join(' ') };
+    }
+
+    function mandarin(n){
+      const c = ['零','一','二','三','四','五','六','七','八','九'];
+      const p = ['líng','yī','èr','sān','sì','wǔ','liù','qī','bā','jiǔ'];
+      const uC = ['千','百','十',''], uP = ['qiān','bǎi','shí',''];
+      if(n === 0) return { text: '零', read: 'líng' };
+      let text = '', read = [], started = false, zeroPending = false;
+      digitsOf(n).forEach((d, i) => {
+        if(d === 0){ if(started) zeroPending = true; return; }
+        if(zeroPending){ text += '零'; read.push('líng'); zeroPending = false; }
+        const leadTen = i === 2 && d === 1 && !started;
+        if(!leadTen){ text += c[d]; read.push(p[d]); }
+        if(uC[i]){ text += uC[i]; read.push(uP[i]); }
+        started = true;
+      });
+      return { text: text, read: read.join(' ') };
+    }
+
+    // ---------- ancient and alphabetic systems ----------
+    function base60(n){
+      const out = [];
+      do { out.unshift(n % 60); n = Math.floor(n / 60); } while(n > 0);
+      return out;
+    }
+
+    function sumerianWords(n){
+      const t = ['','u','niš','ušu','nimin','ninnu'];
+      const o = ['','diš','min','eš','limmu','ia','aš','imin','ussu','ilimmu'];
+      const u60 = x => [t[Math.floor(x/10)], o[x%10]].filter(Boolean).join('-');
+      if(n === 0) return '';
+      const ds = base60(n);
+      const names = ['', 'geš', 'šar'];
+      const parts = [];
+      ds.forEach((d, i) => {
+        const place = ds.length - 1 - i;
+        if(!d) return;
+        if(place === 0) parts.push(u60(d));
+        else parts.push(d === 1 ? names[place] : u60(d) + ' ' + names[place]);
+      });
+      return parts.join(' + ');
+    }
+
+    function cuneiformSVG(n){
+      const ink = '#ffc477';
+      const ds = n === 0 ? [0] : base60(n);
+      const H = 90;
+      let x = 10, body = '';
+      const wedge = (cx, cy) =>
+        '<path d="M' + (cx-7) + ',' + cy + ' L' + (cx+7) + ',' + cy + ' L' + cx + ',' + (cy+11) + ' Z" fill="' + ink + '"/>' +
+        '<rect x="' + (cx-1.4) + '" y="' + (cy+8) + '" width="2.8" height="16" rx="1.2" fill="' + ink + '"/>';
+      const corner = (cx, cy) =>
+        '<path d="M' + (cx+9) + ',' + (cy-10) + ' L' + (cx-9) + ',' + cy + ' L' + (cx+9) + ',' + (cy+10) + ' L' + (cx+3) + ',' + cy + ' Z" fill="' + ink + '"/>';
+      const placeholder = (cx) =>
+        '<path d="M' + (cx-8) + ',30 L' + (cx+4) + ',22 L' + (cx-2) + ',36 Z" fill="' + ink + '"/>' +
+        '<path d="M' + (cx-8) + ',52 L' + (cx+4) + ',44 L' + (cx-2) + ',58 Z" fill="' + ink + '"/>';
+      ds.forEach((d, idx) => {
+        if(idx > 0) x += 22;
+        if(d === 0){ body += placeholder(x + 8); x += 20; return; }
+        const tens = Math.floor(d / 10), ones = d % 10;
+        // corner wedges for tens, stacked in a column of up to 3
+        for(let k = 0; k < tens; k++){
+          const col = Math.floor(k / 3), row = k % 3;
+          body += corner(x + 10 + col * 20, 22 + row * 22);
+        }
+        if(tens) x += Math.ceil(tens / 3) * 20 + 6;
+        // vertical wedges for ones, rows of up to 3
+        const rows = ones <= 3 ? 1 : ones <= 6 ? 2 : 3;
+        const perRow = Math.ceil(ones / rows);
+        const startY = rows === 1 ? 30 : rows === 2 ? 18 : 6;
+        for(let k = 0; k < ones; k++){
+          const row = Math.floor(k / perRow), col = k % perRow;
+          body += wedge(x + 8 + col * 16, startY + row * 27);
+        }
+        if(ones) x += perRow * 16 + 2;
+      });
+      const W = x + 10;
+      return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + Math.min(W * 1.6, 520) + '">' + body + '</svg>';
+    }
+
+    function egyptian(n){
+      if(n === 0) return '';
+      const signs = ['\u{131BC}', '\u{13362}', '\u{13386}', '\u{133FA}']; // lotus 1000, coil 100, heel bone 10, stroke 1
+      return digitsOf(n).map((d, i) => signs[i].repeat(d)).join('');
+    }
+
+    function roman(n){
+      if(n < 1 || n > 3999) return '';
+      const map = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+      let s = '';
+      map.forEach(([v, r]) => { while(n >= v){ s += r; n -= v; } });
+      return s;
+    }
+
+    function greek(n){
+      if(n === 0) return '';
+      const o = ' αβγδεϛζηθ', t = ' ικλμνξοπϟ', h = ' ρστυφχψωϡ';
+      const [th, hh, tt, oo] = digitsOf(n);
+      const rest = (hh ? h[hh] : '') + (tt ? t[tt] : '') + (oo ? o[oo] : '');
+      return (th ? '͵' + o[th] : '') + (rest ? rest + 'ʹ' : '');
+    }
+
+    function hebrew(n){
+      if(n === 0) return '';
+      const o = ['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
+      const t = ['','י','כ','ל','מ','נ','ס','ע','פ','צ'];
+      const h = ['','ק','ר','ש','ת','תק','תר','תש','תת','תתק'];
+      const [th, hh, tt, oo] = digitsOf(n);
+      const lo = tt * 10 + oo;
+      let rest = h[hh];
+      if(lo === 15) rest += 'טו';
+      else if(lo === 16) rest += 'טז';
+      else rest += t[tt] + o[oo];
+      if(rest.length > 1) rest = rest.slice(0, -1) + '״' + rest.slice(-1);
+      else if(rest.length === 1) rest += '׳';
+      return (th ? o[th] + '׳' : '') + rest;
+    }
+
+    function geez(n){
+      if(n === 0) return '';
+      const one = d => String.fromCodePoint(0x1369 + d - 1);
+      const ten = d => String.fromCodePoint(0x1372 + d - 1);
+      const pair = x => (Math.floor(x/10) ? ten(Math.floor(x/10)) : '') + (x%10 ? one(x%10) : '');
+      const hi = Math.floor(n / 100), lo = n % 100;
+      return (hi ? (hi === 1 ? '' : pair(hi)) + '፻' : '') + pair(lo);
+    }
+
+    function armenian(n){
+      if(n === 0) return '';
+      const bases = [0x54C, 0x543, 0x53A, 0x531];
+      return digitsOf(n).map((d, i) => d ? String.fromCodePoint(bases[i] + d - 1) : '').join('');
+    }
+
+    function georgian(n){
+      if(n === 0) return '';
+      const rows = ['ჩცძწჭხჴჯჰ', 'რსტჳფქღყშ', 'იკლმნჲოპჟ', 'აბგდევზჱთ'];
+      return digitsOf(n).map((d, i) => d ? rows[i][d - 1] : '').join('');
+    }
+
+    const digitScript = base => n => String(n).split('').map(c => String.fromCodePoint(base + Number(c))).join('');
+
+    // ---------- the list ----------
+    const W = (text, read) => ({ text: text, read: read || '', cls: 'words' });
+    const G = (text, read, cls) => ({ text: text, read: read || '', cls: cls || '' });
+
+    const SYSTEMS = [
+      { group: 'Spoken words', id: 'en', name: 'English', f: n => W(english(n)),
+        about: 'Every number up to 9999 built from 28 basic words plus hundred and thousand.' },
+      { group: 'Spoken words', id: 'es', name: 'Spanish', f: n => W(spanish(n)),
+        about: 'Numbers from 16 to 29 fuse into one word, like veintitrés. Above that, tens and ones join with y.' },
+      { group: 'Spoken words', id: 'fr', name: 'French', f: n => W(french(n)),
+        about: 'French counts by twenties above 60: 70 is sixty-ten, 80 is four-twenties, 90 is four-twenties-ten. That is a leftover of an older base twenty system.' },
+      { group: 'Spoken words', id: 'de', name: 'German', f: n => W(german(n)),
+        about: 'German says the ones before the tens, so 21 is one-and-twenty, and writes the whole number as one long word.' },
+      { group: 'Spoken words', id: 'ko', name: 'Korean (Sino-Korean)', f: n => { const k = koreanSino(n); return W(k.text, k.read); },
+        about: 'The number system Korean uses for money, dates, phone numbers and math. Ten digits plus 십 ten, 백 hundred and 천 thousand.' },
+      { group: 'Spoken words', id: 'ko-native', name: 'Korean (native, 1 to 99)', f: n => { const k = koreanNative(n); return k ? W(k.text, k.read) : G('', 'Native Korean words run from 1 to 99. Larger numbers switch to Sino-Korean.', 'empty'); },
+        about: 'The older native Korean counting words, used for ages, hours and counting things. Each ten has its own word.' },
+      { group: 'Spoken words', id: 'ja', name: 'Japanese', f: n => { const k = japanese(n); return W(k.text, k.read); },
+        about: 'Kanji digits plus 十 ten, 百 hundred and 千 thousand. Some combos shift sound, like 300 sanbyaku and 800 happyaku.' },
+      { group: 'Spoken words', id: 'zh', name: 'Mandarin Chinese', f: n => { const k = mandarin(n); return W(k.text, k.read); },
+        about: 'Same idea as Japanese kanji with pinyin readings. A 零 zero gets spoken whenever a gap sits inside the number, like 1001 one-thousand-zero-one.' },
+      { group: 'Spoken words', id: 'sux', name: 'Sumerian', f: n => n === 0 ? G('', 'Sumerian had no sign for zero.', 'empty') : G(cuneiformSVG(n), sumerianWords(n)),
+        about: 'Cuneiform pressed into clay, base sixty. A corner wedge is 10, a vertical wedge is 1. Each group is a place worth 60 times the one to its right: ones, then geš (60), then šar (3600). Readings are the standard Sumerian number words.' },
+
+      { group: 'Ancient systems', id: 'egy', name: 'Egyptian hieroglyphs', f: n => n === 0 ? G('', 'Egyptian numerals had no sign for zero.', 'empty') : G(egyptian(n), '', 'hiero'),
+        about: 'A stroke is 1, a heel bone is 10, a coil of rope is 100, a lotus flower is 1000. You repeat each sign as many times as needed and add them up.' },
+      { group: 'Ancient systems', id: 'rom', name: 'Roman numerals', f: n => n === 0 ? G('', 'Roman numerals had no sign for zero.', 'empty') : n > 3999 ? G('', 'Standard Roman numerals stop at 3999.', 'empty') : G(roman(n)),
+        about: 'I 1, V 5, X 10, L 50, C 100, D 500, M 1000. A smaller sign before a bigger one subtracts, so IV is 4.' },
+      { group: 'Ancient systems', id: 'grc', name: 'Greek (Ionic)', f: n => n === 0 ? G('', 'Greek letter numerals had no sign for zero.', 'empty') : G(greek(n)),
+        about: 'Letters stand for numbers: alpha 1, iota 10, rho 100. A mark after the letters flags them as a number, and a mark in front multiplies by 1000.' },
+      { group: 'Ancient systems', id: 'heb', name: 'Hebrew', f: n => n === 0 ? G('', 'Hebrew letter numerals had no sign for zero.', 'empty') : G(hebrew(n), '', 'rtl'),
+        about: 'Letters stand for numbers and add up, read right to left. 15 and 16 are written 9+6 and 9+7 to avoid spelling a name of God.' },
+      { group: 'Ancient systems', id: 'gez', name: 'Geʼez (Ethiopic)', f: n => n === 0 ? G('', 'Geʼez numerals had no sign for zero.', 'empty') : G(geez(n), '', 'geez'),
+        about: 'Still used in Ethiopia and Eritrea. Signs for 1 to 9 and 10 to 90, then ፻ means hundred and multiplies whatever sits before it.' },
+      { group: 'Ancient systems', id: 'hye', name: 'Armenian', f: n => n === 0 ? G('', 'Armenian letter numerals had no sign for zero.', 'empty') : G(armenian(n)),
+        about: 'Each of 36 letters has a value from 1 to 9000. Write the letters for each place and add them.' },
+      { group: 'Ancient systems', id: 'kat', name: 'Georgian', f: n => n === 0 ? G('', 'Georgian letter numerals had no sign for zero.', 'empty') : G(georgian(n)),
+        about: 'Like Armenian, every letter carries a value from 1 to 9000, and a number is the letters added together.' },
+
+      { group: 'Modern digit scripts', id: 'ar', name: 'Arabic (Eastern)', f: n => G(digitScript(0x660)(n)), about: 'The digits used across much of the Arab world. Same place value system as 0 to 9, different shapes.' },
+      { group: 'Modern digit scripts', id: 'fa', name: 'Persian and Urdu', f: n => G(digitScript(0x6F0)(n)), about: 'A variant of Eastern Arabic digits with different 4, 5 and 6.' },
+      { group: 'Modern digit scripts', id: 'hi', name: 'Hindi, Marathi, Nepali (Devanagari)', f: n => G(digitScript(0x966)(n)), about: 'Devanagari digits, from the same Indian family the modern 0 to 9 came from.' },
+      { group: 'Modern digit scripts', id: 'bn', name: 'Bengali', f: n => G(digitScript(0x9E6)(n)), about: 'Bengali digits, used in Bangladesh and eastern India.' },
+      { group: 'Modern digit scripts', id: 'pa', name: 'Punjabi (Gurmukhi)', f: n => G(digitScript(0xA66)(n)), about: 'Gurmukhi digits, used for Punjabi.' },
+      { group: 'Modern digit scripts', id: 'gu', name: 'Gujarati', f: n => G(digitScript(0xAE6)(n)), about: 'Gujarati digits, used in western India.' },
+      { group: 'Modern digit scripts', id: 'or', name: 'Odia', f: n => G(digitScript(0xB66)(n)), about: 'Odia digits, used in eastern India.' },
+      { group: 'Modern digit scripts', id: 'ta', name: 'Tamil', f: n => G(digitScript(0xBE6)(n)), about: 'Tamil digits. Older Tamil also had separate signs for 10, 100 and 1000.' },
+      { group: 'Modern digit scripts', id: 'te', name: 'Telugu', f: n => G(digitScript(0xC66)(n)), about: 'Telugu digits, used in southern India.' },
+      { group: 'Modern digit scripts', id: 'kn', name: 'Kannada', f: n => G(digitScript(0xCE6)(n)), about: 'Kannada digits, used in southern India.' },
+      { group: 'Modern digit scripts', id: 'ml', name: 'Malayalam', f: n => G(digitScript(0xD66)(n)), about: 'Malayalam digits, used in Kerala.' },
+      { group: 'Modern digit scripts', id: 'th', name: 'Thai', f: n => G(digitScript(0xE50)(n)), about: 'Thai digits, still common on signs and official papers.' },
+      { group: 'Modern digit scripts', id: 'lo', name: 'Lao', f: n => G(digitScript(0xED0)(n)), about: 'Lao digits, close cousins of the Thai set.' },
+      { group: 'Modern digit scripts', id: 'km', name: 'Khmer', f: n => G(digitScript(0x17E0)(n)), about: 'Khmer digits, used in Cambodia. The oldest known written zero is a Khmer inscription from the year 683.' },
+      { group: 'Modern digit scripts', id: 'my', name: 'Burmese', f: n => G(digitScript(0x1040)(n)), about: 'Burmese digits, used in Myanmar.' },
+      { group: 'Modern digit scripts', id: 'bo', name: 'Tibetan', f: n => G(digitScript(0xF20)(n)), about: 'Tibetan digits.' },
+      { group: 'Modern digit scripts', id: 'mn', name: 'Mongolian', f: n => G(digitScript(0x1810)(n)), about: 'Traditional Mongolian script digits.' },
+
+      { group: 'Machine bases', id: 'bin', name: 'Binary (base 2)', f: n => G(n.toString(2)), about: 'Two digits. Every place is worth twice the one to its right.' },
+      { group: 'Machine bases', id: 'oct', name: 'Octal (base 8)', f: n => G(n.toString(8)), about: 'Eight digits. Each octal digit packs exactly three binary bits.' },
+      { group: 'Machine bases', id: 'hex', name: 'Hexadecimal (base 16)', f: n => G(n.toString(16).toUpperCase()), about: 'Sixteen digits, A to F stand for 10 to 15. Each hex digit packs exactly four binary bits.' }
+    ];
+
+    // build the dropdown
+    let currentGroup = null, groupEl = null;
+    SYSTEMS.forEach(s => {
+      if(s.group !== currentGroup){
+        groupEl = document.createElement('optgroup');
+        groupEl.label = s.group;
+        sel.appendChild(groupEl);
+        currentGroup = s.group;
+      }
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      groupEl.appendChild(opt);
+    });
+
+    let saved = null;
+    try{ saved = localStorage.getItem('flipcount-lang'); } catch(e){}
+    if(saved && SYSTEMS.some(s => s.id === saved)) sel.value = saved;
+
+    let value = 0;
+    let autoTimer = null;
+
+    function render(){
+      const sys = SYSTEMS.find(s => s.id === sel.value) || SYSTEMS[0];
+      const out = sys.f(value);
+      glyphEl.className = 'lang-glyph ' + out.cls;
+      glyphEl.dir = out.cls === 'rtl' ? 'rtl' : 'ltr';
+      if(out.cls === 'empty'){
+        glyphEl.textContent = out.read;
+        readingEl.textContent = '';
+      } else {
+        glyphEl.innerHTML = out.text.startsWith('<svg') ? out.text : '';
+        if(!out.text.startsWith('<svg')) glyphEl.textContent = out.text;
+        readingEl.textContent = out.read;
+      }
+      void glyphEl.offsetWidth;
+      glyphEl.classList.add('pop');
+      readEl.innerHTML = 'DECIMAL <b>' + value + '</b> &middot; BINARY <b>' + value.toString(2) + '</b>';
+      aboutEl.textContent = sys.about;
+    }
+
+    function setTo(next){
+      const size = MAX + 1;
+      value = ((next % size) + size) % size;
+      render();
+    }
+    function stopAuto(){
+      clearInterval(autoTimer);
+      autoTimer = null;
+      autoBtn.classList.remove('auto-on');
+      autoBtn.textContent = 'AUTO';
+    }
+
+    document.getElementById('langInc').addEventListener('click', () => setTo(value + 1));
+    document.getElementById('langDec').addEventListener('click', () => setTo(value - 1));
+    document.getElementById('langReset').addEventListener('click', () => { stopAuto(); setTo(0); });
+    autoBtn.addEventListener('click', () => {
+      if(autoTimer){ stopAuto(); return; }
+      autoTimer = setInterval(() => setTo(value + 1), 900);
+      autoBtn.classList.add('auto-on');
+      autoBtn.textContent = 'STOP';
+    });
+    gotoEl.addEventListener('change', () => {
+      const n = parseInt(gotoEl.value, 10);
+      if(!isNaN(n)) setTo(Math.max(0, Math.min(MAX, n)));
+    });
+    sel.addEventListener('change', () => {
+      try{ localStorage.setItem('flipcount-lang', sel.value); } catch(e){}
+      render();
+    });
+    document.addEventListener('flipcount:tab', (e) => { if(e.detail !== 'languages' && autoTimer) stopAuto(); });
+
+    render();
   })();
 </script>
 
